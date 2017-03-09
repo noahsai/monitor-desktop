@@ -11,6 +11,9 @@
 #include<QRegularExpression>
 #include<QDebug>
 #include<QMenu>
+#include<monitorwindow.h>
+#include<QPropertyAnimation>
+#include<QSettings>
 
 #define RED  ":/red.png"
 #define YELLOW  ":/yellow.png"
@@ -36,6 +39,7 @@ private:
     QString downspeed;
 
 private slots:
+    void animationfinished();
     void timeout();
     void openmoniter();
 private:
@@ -43,6 +47,15 @@ private:
     void mouseMoveEvent(QMouseEvent * event);
     void mouseReleaseEvent(QMouseEvent * event);
     void contextMenuEvent(QContextMenuEvent *);
+
+    void enterEvent(QEvent *);
+    void leaveEvent(QEvent *);
+    int side;//左0,上1,右2，非贴边-1；
+    bool showall;
+
+    void saveset();
+    void readset();
+
 
     void getnetspeed();//可独立使用，加返回值即可
     void getmemused();//同上
@@ -57,6 +70,9 @@ private:
 //    QSystemTrayIcon *trayIcon;//托盘图标
     QAction *tuichu;
     QAction *moniter;
+    monitorwindow *killer;
+    bool justpress;
+    QPropertyAnimation *animation;
 };
 
 #endif // MONITOT_H

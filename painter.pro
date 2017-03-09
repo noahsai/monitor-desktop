@@ -13,11 +13,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        monitot.cpp
+        monitot.cpp \
+    monitorwindow.cpp
 
-HEADERS  += monitot.h
+HEADERS  += monitot.h \
+    monitorwindow.h
 
-FORMS    += monitot.ui
+FORMS    += monitot.ui \
+    monitorwindow.ui
 
 RESOURCES += \
     res.qrc
