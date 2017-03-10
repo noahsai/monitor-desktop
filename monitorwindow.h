@@ -12,7 +12,13 @@
 
 #define CPU_SORT "ps ax -o \"%u %p %C\" -o pmem -o \"%c %a\" --sort=-%cpu|head -16"//包含头
 #define MEM_SORT "ps ax -o \"%u %p %C\" -o pmem -o \"%c %a\" --sort=-pmem|head -16"//包含头
+#define BG_color "#monitorwindow{ background-color:%1; }\
+                #pushButton{ color:%2; }"
+#define LOW "rgb(50, 162, 106)"
+#define MID "rgb(233, 119, 57)"
+#define HIGH "rgb(179, 10, 13)"
 
+class monitot;//在cpp文件里包含h文件
 
 namespace Ui {
 class monitorwindow;
@@ -28,6 +34,7 @@ public:
     ~monitorwindow();
 
 public slots:
+
     bool getinfo();
 
 private slots:

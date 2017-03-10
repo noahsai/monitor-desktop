@@ -1,5 +1,6 @@
 #include "monitorwindow.h"
 #include "ui_monitorwindow.h"
+#include<monitot.h>
 
 monitorwindow::monitorwindow(QWidget *parent) :
     QWidget(parent),
@@ -12,6 +13,7 @@ monitorwindow::monitorwindow(QWidget *parent) :
             |Qt::Tool
          );//去边框//最ding层显示//不在任务栏显示
     ui->tableWidget->setColumnCount(4);
+
 //    QStringList header;
 //     header<<tr("进程")<<tr("CPU%")<<tr("内存%")<<tr(" ");
 //    ui->tableWidget->setHorizontalHeaderLabels(header);
@@ -60,6 +62,21 @@ bool monitorwindow::getinfo()
     QRegularExpression reg;
     QStringList list;
     QTableWidgetItem *item;
+
+    monitot *m = (monitot*)(this->parentWidget());
+    int memused = m->memusing();
+    QString color=BG_color;
+    if(memused>=80)//内存大时的颜色！默认红色
+    {
+        color = color.arg(HIGH).arg(HIGH);
+    }
+     else if(memused>=65&&memused<80)//内存占用较多时的颜色！默认橙色
+     {
+        color = color.arg(MID).arg(MID);
+     }
+     else   color = color.arg(LOW).arg(LOW);
+    this->setStyleSheet(color);
+    //========================
     process->start("/bin/bash");
     ui->tableWidget->clear();
     if(process->waitForStarted(3000))

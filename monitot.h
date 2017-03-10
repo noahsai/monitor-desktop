@@ -11,13 +11,15 @@
 #include<QRegularExpression>
 #include<QDebug>
 #include<QMenu>
-#include<monitorwindow.h>
 #include<QPropertyAnimation>
 #include<QSettings>
+
 
 #define RED  ":/red.png"
 #define YELLOW  ":/yellow.png"
 #define GREEN  ":/green.png"
+
+class monitorwindow;//在cpp文件里包含h文件
 
 namespace Ui {
 class monitot;
@@ -29,6 +31,7 @@ class monitot : public QWidget
 
 public:
     explicit monitot(QWidget *parent = 0);
+    int memusing();
     ~monitot();
 
 private:
@@ -37,6 +40,7 @@ private:
     int memused;
     QString upspeed;
     QString downspeed;
+
 
 private slots:
     void animationfinished();

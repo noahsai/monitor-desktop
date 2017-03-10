@@ -1,12 +1,13 @@
 #include "monitot.h"
 #include "ui_monitot.h"
+#include "monitorwindow.h"
 
 monitot::monitot(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::monitot)
 {
     ui->setupUi(this);
-    this->setGeometry(QApplication::desktop()->width()-120,QApplication::desktop()->height()-120,86,32);
+    this->setGeometry(QApplication::desktop()->width()-100,QApplication::desktop()->height()-100,86,32);
     setWindowFlags(Qt::FramelessWindowHint
        |Qt::WindowStaysOnTopHint
         |Qt::Tool
@@ -40,11 +41,13 @@ monitot::monitot(QWidget *parent) :
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(timeout()));
     timer->start();
+    readset();
     poscheck();
 }
 
 monitot::~monitot()
 {
+    saveset();
     delete ui;
 }
 
@@ -147,7 +150,13 @@ void monitot::timeout()
     {
         killer->stop_hide();
     }
-   if(showall) getnetspeed();
+   if(showall) {
+       getnetspeed();
+   }
+   else {
+       oup = 0;
+       odown = 0;
+   }
     getmemused();
     update();
 
@@ -287,11 +296,21 @@ void monitot::mouseMoveEvent(QMouseEvent * event){
 
 void monitot::mouseReleaseEvent(QMouseEvent * event){
     setCursor(Qt::ArrowCursor);
-
-    if(this->x()<=0) side = 0;
-    else if(this->x()>=QApplication::desktop()->width()-86) side = 2;
-    else if(this->y()<=0) side = 1;
-    else side = -1;
+    side = -1;//默认为不靠边
+    //先判断y
+    if(this->y()<=0) {
+        side = 1;
+        move(x(),0);
+    }
+    //后判断x，这样就左右优先，上其次
+    if(this->x()<=0) {
+        side = 0;
+        move(0,y());
+    }
+    else if(this->x()>=QApplication::desktop()->width()-86) {
+        move(QApplication::desktop()->width()-86,y());
+        side = 2;
+    }
 
     if(killer->isVisible()) {
         killer->stop_hide();
@@ -314,19 +333,29 @@ void monitot::mouseReleaseEvent(QMouseEvent * event){
         killer->show();
         killer->activateWindow();
     }
+    qDebug()<<x()<<y();
     justpress=true;
+    saveset();
     event->accept();
 }
 
 void monitot::enterEvent(QEvent *){
+    if(animation->state()==QAbstractAnimation::Running) return;
     showall =true;//立即开始画网速部分；
-    int endx,endy;
+    int endx,endy,endw,endh;
+    endw = 18;
+    endh = 32;
     switch(side)
     {
     case 0:
+        endx = this->x();
+        endy = this->y();
+        break;
     case 1:
         endx = this->x();
         endy = this->y();
+        endw = 32;
+        endh = 18;
         break;
     case 2:
         endx = this->x()-68;
@@ -335,12 +364,13 @@ void monitot::enterEvent(QEvent *){
     default:
         return;
     }
-    qDebug()<<endx<<endy;
+   // qDebug()<<endx<<endy;
     //QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
     animation->setDuration(150);
-    animation->setStartValue(QRect(this->x(), this->y(), 18, 32));
+    animation->setStartValue(QRect(this->x(), this->y(), endw, endh));
 
     animation->setEndValue(QRect(endx, endy, 86, 32));
+   // qDebug()<<"enter"<<x()<<y();
 
     animation->start();
 }
@@ -348,6 +378,7 @@ void monitot::leaveEvent(QEvent *){
     int endx,endy,endw,endh;
     endw = 18;
     endh = 32;
+    showall =true;
     switch(side)
     {
     case 0:
@@ -371,8 +402,8 @@ void monitot::leaveEvent(QEvent *){
     animation->setDuration(150);
     animation->setStartValue(QRect(this->x(), this->y(), 86, 32));
     animation->setEndValue(QRect(endx,endy, endw, endh));
-    qDebug()<<endx<<endy;
-
+    //qDebug()<<endx<<endy;
+   // qDebug()<<"leave"<<x()<<y();
     animation->start();
 }
 
@@ -414,4 +445,26 @@ void monitot::poscheck()
 void monitot::animationfinished(){
     if(this->width()<86)  showall = false;
     else showall = true;
+    qDebug()<<"animationfinished"<<showall;
+}
+
+void monitot::saveset()
+{
+    QSettings set("Noahsai","Monitor-desktop",this);
+    set.setValue("geometry", this->geometry());
+    set.setValue("side", side);
+    set.setValue("showall",showall);
+}
+void monitot::readset()
+{
+    QSettings set("Noahsai","Monitor-desktop",this);
+    setGeometry( set.value("geometry",QVariant(QRect(QApplication::desktop()->width()-100,QApplication::desktop()->height()-100,86,32))).toRect());
+    side = set.value("side", -1).toInt();
+    showall = set.value("showall",true).toBool();
+
+
+}
+
+int monitot::memusing(){
+    return memused;
 }
