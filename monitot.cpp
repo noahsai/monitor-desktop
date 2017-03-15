@@ -14,10 +14,14 @@ monitot::monitot(QWidget *parent) :
      );//去边框//最ding层显示//不在任务栏显示
     this->setAttribute(Qt::WA_TranslucentBackground, true);
 
-    tuichu  = new QAction("退出", this);
-    moniter = new QAction("系统监视器",this);
+    menu =new QMenu(this);
+    tuichu  = new QAction("退出",menu);
+    moniter = new QAction("系统监视器",menu);
     connect(tuichu, SIGNAL(triggered(bool)), qApp, SLOT(quit()));//若触发了退出就退出程序
     connect(moniter,SIGNAL(triggered(bool)),this,SLOT(openmoniter()));
+
+    menu->addAction(moniter);//添加系统监视器
+    menu->addAction(tuichu); //添加退出
 
     memused =0;
     upspeed = "↑0K";
@@ -140,7 +144,8 @@ void monitot::paintEvent(QPaintEvent *event)
     }
     paint.save();
     paint.restore();
-    QWidget::paintEvent(event);
+    //QWidget::paintEvent(event);
+    event->accept();
 }
 
 
@@ -284,62 +289,69 @@ void monitot::mousePressEvent(QMouseEvent* event)
         oldpos=event->globalPos()-this->pos();
         setCursor(Qt::ClosedHandCursor);
         justpress = true;
+        event->accept();
     }
+    else QWidget::mousePressEvent(event);
 }
 
 void monitot::mouseMoveEvent(QMouseEvent * event){
     killer->stop_hide();
     move(event->globalPos()-oldpos);//貌似linux要这样
-    event->accept();
     justpress = false;
+    event->accept();
 }
 
 void monitot::mouseReleaseEvent(QMouseEvent * event){
-    setCursor(Qt::ArrowCursor);
-    side = -1;//默认为不靠边
-    //先判断y
-    if(this->y()<=0) {
-        side = 1;
-        move(x(),0);
-    }
-    //后判断x，这样就左右优先，上其次
-    if(this->x()<=0) {
-        side = 0;
-        move(0,y());
-    }
-    else if(this->x()>=QApplication::desktop()->width()-86) {
-        move(QApplication::desktop()->width()-86,y());
-        side = 2;
-    }
-
-    if(killer->isVisible()) {
-        killer->stop_hide();
-        return;
-    }
-    if(justpress)
+    if(event->button()==Qt::LeftButton )
     {
-        int x,y;
-        x=this->x();
-        y=this->y()+32+4;
-        if(x > QApplication::desktop()->width()-killer->width())  x = QApplication::desktop()->width()-killer->width();
-        else if(x < 0) x=0;
-        if(QApplication::desktop()->height()-this->y() < killer->height()){
-            y = this->y()-killer->height()-4;
-            qDebug()<<"QApplication::desktop()->height()-this->y() < killer->height()"<<y;
+        setCursor(Qt::ArrowCursor);
+        side = -1;//默认为不靠边
+        //先判断y
+        if(this->y()<=0) {
+            side = 1;
+            move(x(),0);
+        }
+        //后判断x，这样就左右优先，上其次
+        if(this->x()<=0) {
+            side = 0;
+            move(0,y());
+        }
+        else if(this->x()>=QApplication::desktop()->width()-86) {
+            move(QApplication::desktop()->width()-86,y());
+            side = 2;
         }
 
-        killer->move(x,y);
-        killer->getinfo();
-        killer->show();
-        killer->activateWindow();
+        if(killer->isVisible()) {
+            killer->stop_hide();
+            return;
+        }
+        if(justpress)
+        {
+            int x,y;
+            x=this->x();
+            y=this->y()+32+4;
+            if(x > QApplication::desktop()->width()-killer->width())  x = QApplication::desktop()->width()-killer->width();
+            else if(x < 0) x=0;
+            if(QApplication::desktop()->height()-this->y() < killer->height()){
+                y = this->y()-killer->height()-4;
+                qDebug()<<"QApplication::desktop()->height()-this->y() < killer->height()"<<y;
+            }
+
+            killer->move(x,y);
+            killer->getinfo();
+            killer->show();
+            killer->activateWindow();
+        }
+      //  qDebug()<<x()<<y();
+        justpress=true;
+        saveset();
+        event->accept();
+
     }
-    qDebug()<<x()<<y();
-    justpress=true;
-    saveset();
-    event->accept();
+    else QWidget::mouseReleaseEvent(event);
 }
 
-void monitot::enterEvent(QEvent *){
+void monitot::enterEvent(QEvent *event){
     if(animation->state()==QAbstractAnimation::Running) return;
     showall =true;//立即开始画网速部分；
     int endx,endy,endw,endh;
@@ -373,8 +385,9 @@ void monitot::enterEvent(QEvent *){
    // qDebug()<<"enter"<<x()<<y();
 
     animation->start();
+    event->accept();
 }
-void monitot::leaveEvent(QEvent *){
+void monitot::leaveEvent(QEvent *event){
     int endx,endy,endw,endh;
     endw = 18;
     endh = 32;
@@ -405,15 +418,18 @@ void monitot::leaveEvent(QEvent *){
     //qDebug()<<endx<<endy;
    // qDebug()<<"leave"<<x()<<y();
     animation->start();
+    event->accept();
 }
 
-void monitot::contextMenuEvent(QContextMenuEvent *) //右键菜单项编辑
+void monitot::contextMenuEvent(QContextMenuEvent * event) //右键菜单项编辑
 {
-QCursor cur=this->cursor();
-QMenu *menu=new QMenu(this);
-menu->addAction(moniter);//添加系统监视器
-menu->addAction(tuichu); //添加退出
-menu->exec(cur.pos()); //关联到光标
+    if(menu)
+    {
+        QCursor cur=this->cursor();
+        menu->exec(cur.pos()); //关联到光标
+
+    }
+    event->accept();
 }
 
 void monitot::openmoniter()
@@ -445,7 +461,7 @@ void monitot::poscheck()
 void monitot::animationfinished(){
     if(this->width()<86)  showall = false;
     else showall = true;
-    qDebug()<<"animationfinished"<<showall;
+   // qDebug()<<"animationfinished"<<showall;
 }
 
 void monitot::saveset()

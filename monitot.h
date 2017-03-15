@@ -72,8 +72,10 @@ private:
     QPoint oldpos;
     bool mousepressed;
 //    QSystemTrayIcon *trayIcon;//托盘图标
+    QMenu *menu;
     QAction *tuichu;
     QAction *moniter;
+
     monitorwindow *killer;
     bool justpress;
     QPropertyAnimation *animation;
