@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
             qDebug()<<"deepin下支持只打开一个此软件";
             DApplication app(argc, argv);
             monitot w;
-            if (app.setSingleInstance("deepin-screen-recorder")) {
+            if (app.setSingleInstance("noahsai-monitor-desktop")) {
                 QObject::connect(&app,&DApplication::newInstanceStarted,&w,&monitot::show);
                 w.show();
                 return app.exec();
