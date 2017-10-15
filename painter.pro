@@ -4,13 +4,6 @@
 #
 #-------------------------------------------------
 
-#---------------------
-#假如是其他系统（没有dtk环境的）可以将下面两句删了
-#及将main.cpp里面 #include
-CONFIG += link_pkgconfig
-PKGCONFIG += dtkwidget dtkbase
-
-#---------------------
 
 
 QT       += core gui

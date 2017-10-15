@@ -2,12 +2,20 @@
 #include "ui_monitot.h"
 #include "monitorwindow.h"
 
+#define  BG_W  90
+// 2padding + 1反锯齿x2 + 86内容
+#define  BG_H  36
+// 2padding + 1反锯齿x2 + 32内容
+#define  BG_PADD 2
+//padding
+#define  MEM_S  32
+//内存球绘图大小 = 1反锯齿x2 + 30内容
+
 monitot::monitot(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::monitot)
 {
     ui->setupUi(this);
-    this->setGeometry(QApplication::desktop()->width()-100,QApplication::desktop()->height()-100,86,32);
     setWindowFlags(Qt::FramelessWindowHint
        |Qt::WindowStaysOnTopHint
         |Qt::Tool
@@ -60,31 +68,38 @@ void monitot::paintEvent(QPaintEvent *event)
     QFont font;
     QPainter paint(this);
     paint.setRenderHint(QPainter::Antialiasing,true);
+    //===============先画底============
+    QLinearGradient linearGradient(0,0,0,BG_H);
+    //创建了一个QLinearGradient对象实例，参数为起点和终点坐标，可作为颜色渐变的方向
+    //painter.setPen(Qt::NoPen);
+    linearGradient.setColorAt(0.0,Qt::white);
+    linearGradient.setColorAt(1.0,QColor(224, 224, 224));
+    paint.setBrush(QBrush(linearGradient));
+    paint.setPen(QPen(QColor(210, 210, 210), 1));
+
+    if(side==0&&(!showall))                    paint.drawRoundedRect(0-BG_H/2+1 , 1 , BG_H - 2  , BG_H - 2 , BG_H/2,BG_H/2);//背景圆球
+    else if(side == 1&&(!showall)) {
+        //paint.translate(0,0-BG_H/2-1);
+        paint.drawRoundedRect(1,0-BG_H/2+1,BG_H - 2  , BG_H - 2 , BG_H/2,BG_H/2);//背景圆球
+    }
+    else
+    {
+        //  paint.setBrush(QBrush(Qt::white));//↓由于使用了反锯齿，四边都要多1像素，需要右下各移动1像素再绘图，确保边缘平滑显示。
+        paint.drawRoundedRect(1,1,BG_W - 2  , BG_H - 2 , BG_H/2,BG_H/2);
+    }
     if(showall)
     {
-        //===============先画底============
-        QLinearGradient linearGradient(0,0,0,32);
-        //创建了一个QLinearGradient对象实例，参数为起点和终点坐标，可作为颜色渐变的方向
-        //painter.setPen(Qt::NoPen);
-        linearGradient.setColorAt(0.0,Qt::white);
-        linearGradient.setColorAt(1.0,QColor(224, 224, 224));
-        paint.setBrush(QBrush(linearGradient));
-        //↓由于使用了反锯齿，四边都要多1像素，需要右下各移动1像素再绘图，确保边缘平滑显示。
-        paint.setPen(QPen(QColor(210, 210, 210), 1));
-        //  paint.setBrush(QBrush(Qt::white));
-        paint.drawRoundedRect(1,1,84,30,15,15);
-
-
         //=========================再画网速数值==================
-        font.setPixelSize(11);
+        font.setPixelSize(12);
         paint.setFont(font);
         paint.setPen(QPen(Qt::red, 1));
-        paint.drawText(QRectF(29,2,58,14),Qt::AlignLeft|Qt::AlignVCenter,upspeed);
+        paint.drawText(QRectF(MEM_S ,BG_H/2-14,58,14),Qt::AlignLeft|Qt::AlignVCenter,upspeed);
 
         paint.setPen(QPen(QColor(60, 150, 21), 1));
-        paint.drawText(QRectF(29,16,58,14),Qt::AlignLeft|Qt::AlignVCenter,downspeed);
-
+        paint.drawText(QRectF(MEM_S,BG_H/2,58,14),Qt::AlignLeft|Qt::AlignVCenter,downspeed);
     }
+
+
 //===================再画内存底=========================
     QString picture;
     if(memused>=80)//内存大时的颜色！默认红色
@@ -99,24 +114,28 @@ void monitot::paintEvent(QPaintEvent *event)
 
     int mem = memused * 30 / 100;
     QPixmap pix = QPixmap(picture).copy(0,mem,30,30);
+    paint.save();//保持(0,0)原点
+    paint.translate(0, BG_PADD+1);//改变纵坐标原点，使填图案时不会发生错误 //由于反锯齿，还要+1
     paint.setBrush(QBrush(Qt::green,pix));
     paint.setPen(QPen(QColor(210, 210, 210), 1));
-    if(side==0&&(!showall))    paint.drawRoundedRect(-13,1,30,30,15,15);
-    else if(side == 1&&(!showall)) {
-        paint.translate(0,-14);
-        paint.drawRoundedRect(1,1,30,30,15,15);
+    if(side==0&&(!showall)) {
+        paint.drawRoundedRect(0-BG_H/2+BG_PADD+1 , 0 ,30,30,15,15);//由于移坐标时y已经+1，此处y就不用+1了
     }
-    else paint.drawRoundedRect(1,1,30,30,15,15);
-
+    else if(side == 1&&(!showall)) {
+        paint.translate(0, 0-BG_H/2);//改变纵坐标原点，使填图案时不会发生错误
+        paint.drawRoundedRect(BG_PADD+1 ,0 ,30,30,15,15);//由于移坐标时y已经+1，此处y就不用+1了
+    }
+    else paint.drawRoundedRect(BG_PADD+1 , 0 ,30,30,15,15);//由于移坐标时y已经+1，此处y就不用+1了
+    paint.restore();//返回saved的0,0
     //==================再写内存数值==============================
     if(showall)
     {
-        paint.setPen(QPen(QColor(180, 180, 180), 1));
+        paint.setPen(QPen(QColor(BG_H/20, BG_H/20, BG_H/20), 1));
         font.setPixelSize(16);
         paint.setFont(font);
-        paint.drawText(QRectF(2,1,30,30),Qt::AlignCenter,QString().setNum( memused));
+        paint.drawText(QRectF(BG_PADD+1,1,30,BG_H-4),Qt::AlignCenter,QString().setNum( memused));
         paint.setPen(QPen(QColor(255, 255, 255), 1));
-        paint.drawText(QRectF(1,1,30,30),Qt::AlignCenter,QString().setNum( memused));
+        paint.drawText(QRectF(BG_PADD+0,1,30,BG_H-4),Qt::AlignCenter,QString().setNum( memused));
     }
     else {
         paint.setPen(QPen(QColor(150, 150, 150), 1));
@@ -124,26 +143,23 @@ void monitot::paintEvent(QPaintEvent *event)
         paint.setFont(font);
          if(side ==0)
         {
-            paint.drawText(QRectF(0,1,18,30),Qt::AlignCenter,QString().setNum( memused));
+            paint.drawText(QRectF(0 , 0,MEM_S/2,BG_H),Qt::AlignCenter,QString().setNum( memused));
             paint.setPen(QPen(QColor(255, 255, 255), 1));
-            paint.drawText(QRectF(-1,1,18,30),Qt::AlignCenter,QString().setNum( memused));
+            paint.drawText(QRectF(-1 , 0,MEM_S/2,BG_H),Qt::AlignCenter,QString().setNum( memused));
         }
         else if(side ==1)
         {
-            paint.translate(0,14);
-            paint.drawText(QRectF(2,-1,30,18),Qt::AlignCenter,QString().setNum( memused));
-            paint.setPen(QPen(QColor(255, 255, 255), 1));
-            paint.drawText(QRectF(1,-1,30,18),Qt::AlignCenter,QString().setNum( memused));
+             paint.drawText(QRectF(0,0, BG_H , MEM_S/2),Qt::AlignCenter,QString().setNum( memused));
+             paint.setPen(QPen(QColor(255, 255, 255), 1));
+             paint.drawText(QRectF(0, -1 ,BG_H , MEM_S/2),Qt::AlignCenter,QString().setNum( memused));
         }
         else
         {
-            paint.drawText(QRectF(2,1,18,30),Qt::AlignCenter,QString().setNum( memused));
+            paint.drawText(QRectF(BG_PADD+2,0,MEM_S/2,BG_H),Qt::AlignCenter,QString().setNum( memused));
             paint.setPen(QPen(QColor(255, 255, 255), 1));
-            paint.drawText(QRectF(1,1,18,30),Qt::AlignCenter,QString().setNum( memused));
+            paint.drawText(QRectF(BG_PADD+1,0,MEM_S/2,BG_H),Qt::AlignCenter,QString().setNum( memused));
         }
     }
-    paint.save();
-    paint.restore();
     //QWidget::paintEvent(event);
     event->accept();
 }
@@ -316,8 +332,8 @@ void monitot::mouseReleaseEvent(QMouseEvent * event){
             side = 0;
             move(0,y());
         }
-        else if(this->x()>=QApplication::desktop()->width()-86) {
-            move(QApplication::desktop()->width()-86,y());
+        else if(this->x()>=QApplication::desktop()->width()-BG_W) {
+            move(QApplication::desktop()->width()-BG_W,y());
             side = 2;
         }
 
@@ -329,7 +345,7 @@ void monitot::mouseReleaseEvent(QMouseEvent * event){
         {
             int x,y;
             x=this->x();
-            y=this->y()+32+4;
+            y=this->y()+BG_H+4;
             if(x > QApplication::desktop()->width()-killer->width())  x = QApplication::desktop()->width()-killer->width();
             else if(x < 0) x=0;
             if(QApplication::desktop()->height()-this->y() < killer->height()){
@@ -355,8 +371,8 @@ void monitot::enterEvent(QEvent *event){
     if(animation->state()==QAbstractAnimation::Running) return;
     showall =true;//立即开始画网速部分；
     int endx,endy,endw,endh;
-    endw = 18;
-    endh = 32;
+    endw = BG_H/2;
+    endh = BG_H;
     switch(side)
     {
     case 0:
@@ -366,11 +382,11 @@ void monitot::enterEvent(QEvent *event){
     case 1:
         endx = this->x();
         endy = this->y();
-        endw = 32;
-        endh = 18;
+        endw = BG_H;
+        endh = BG_H/2;
         break;
     case 2:
-        endx = this->x()-68;
+        endx = this->x()-(BG_W-BG_H/2);
         endy = this->y();
         break;
     default:
@@ -381,7 +397,7 @@ void monitot::enterEvent(QEvent *event){
     animation->setDuration(150);
     animation->setStartValue(QRect(this->x(), this->y(), endw, endh));
 
-    animation->setEndValue(QRect(endx, endy, 86, 32));
+    animation->setEndValue(QRect(endx, endy, BG_W, BG_H));
    // qDebug()<<"enter"<<x()<<y();
 
     animation->start();
@@ -389,8 +405,8 @@ void monitot::enterEvent(QEvent *event){
 }
 void monitot::leaveEvent(QEvent *event){
     int endx,endy,endw,endh;
-    endw = 18;
-    endh = 32;
+    endw = BG_H/2;
+    endh = BG_H;
     showall =true;
     switch(side)
     {
@@ -401,11 +417,11 @@ void monitot::leaveEvent(QEvent *event){
     case 1:
         endx = this->x();
         endy = this->y();
-        endw = 32;
-        endh = 18;
+        endw = BG_H;
+        endh = BG_H/2;
         break;
     case 2:
-        endx = this->x()+68;
+        endx = this->x()+(BG_W-BG_H/2);
         endy = this->y();
         break;
     default:
@@ -413,7 +429,7 @@ void monitot::leaveEvent(QEvent *event){
     }
 
     animation->setDuration(150);
-    animation->setStartValue(QRect(this->x(), this->y(), 86, 32));
+    animation->setStartValue(QRect(this->x(), this->y(), BG_W, BG_H));
     animation->setEndValue(QRect(endx,endy, endw, endh));
     //qDebug()<<endx<<endy;
    // qDebug()<<"leave"<<x()<<y();
@@ -459,7 +475,7 @@ void monitot::poscheck()
 }
 
 void monitot::animationfinished(){
-    if(this->width()<86)  showall = false;
+    if(this->width()<BG_W)  showall = false;
     else showall = true;
    // qDebug()<<"animationfinished"<<showall;
 }
@@ -474,7 +490,10 @@ void monitot::saveset()
 void monitot::readset()
 {
     QSettings set("Noahsai","Monitor-desktop",this);
-    setGeometry( set.value("geometry",QVariant(QRect(QApplication::desktop()->width()-100,QApplication::desktop()->height()-100,86,32))).toRect());
+    QRect r = set.value("geometry",QVariant(QRect(QApplication::desktop()->width()-100,QApplication::desktop()->height()-100 , BG_W , BG_H))).toRect();
+    int rx = r.x();
+    int ry = r.y();
+    setGeometry(rx , ry , BG_W , BG_H );
     side = set.value("side", -1).toInt();
     showall = set.value("showall",true).toBool();
 

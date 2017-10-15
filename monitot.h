@@ -15,6 +15,7 @@
 #include<QSettings>
 
 
+
 #define RED  ":/red.png"
 #define YELLOW  ":/yellow.png"
 #define GREEN  ":/green.png"
