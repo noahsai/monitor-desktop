@@ -13,6 +13,7 @@
 #include<QMenu>
 #include<QPropertyAnimation>
 #include<QSettings>
+#include"printcpu/manager.h"
 
 
 
@@ -47,6 +48,7 @@ private slots:
     void animationfinished();
     void timeout();
     void openmoniter();
+    void opencpu();
 private:
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent * event);
@@ -74,12 +76,13 @@ private:
     bool mousepressed;
 //    QSystemTrayIcon *trayIcon;//托盘图标
     QMenu *menu;
-    QAction *tuichu;
-    QAction *moniter;
+//    QAction *tuichu;
+//    QAction *moniter;
 
     monitorwindow *killer;
     bool justpress;
     QPropertyAnimation *animation;
+    manager *cpumonitor;
 };
 
 #endif // MONITOT_H

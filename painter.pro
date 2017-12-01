@@ -18,13 +18,23 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         monitot.cpp \
-    monitorwindow.cpp
+    monitorwindow.cpp \
+    printcpu/manager.cpp \
+    printcpu/widget.cpp
 
 HEADERS  += monitot.h \
-    monitorwindow.h
+    monitorwindow.h \
+    printcpu/manager.h \
+    printcpu/widget.h
 
 FORMS    += monitot.ui \
-    monitorwindow.ui
+    monitorwindow.ui \
+    printcpu/manager.ui \
+    printcpu/widget.ui
 
 RESOURCES += \
     res.qrc
+
+SUBDIRS += \
+    printcpu/printcpu.pro
+

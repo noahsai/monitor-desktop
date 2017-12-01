@@ -1,7 +1,6 @@
 #include "monitot.h"
 #include "ui_monitot.h"
 #include "monitorwindow.h"
-
 #define  BG_W  90
 // 2padding + 1反锯齿x2 + 86内容
 #define  BG_H  36
@@ -20,20 +19,24 @@ monitot::monitot(QWidget *parent) :
        |Qt::WindowStaysOnTopHint
         |Qt::Tool
      );//去边框//最ding层显示//不在任务栏显示
+    setAutoFillBackground(false);
     this->setAttribute(Qt::WA_TranslucentBackground, true);
 
     menu =new QMenu(this);
-    tuichu  = new QAction("退出",menu);
-    moniter = new QAction("系统监视器",menu);
+    QAction *tuichu  = new QAction("退出",menu);
+    QAction *moniter = new QAction("系统监视器",menu);
+    QAction *cpu = new QAction("CUP图开/关",menu);
     connect(tuichu, SIGNAL(triggered(bool)), qApp, SLOT(quit()));//若触发了退出就退出程序
     connect(moniter,SIGNAL(triggered(bool)),this,SLOT(openmoniter()));
-
+    connect(cpu,SIGNAL(triggered(bool)),this,SLOT(opencpu()));
+    menu->addAction(cpu); //添加退出
     menu->addAction(moniter);//添加系统监视器
     menu->addAction(tuichu); //添加退出
 
     memused =0;
     upspeed = "↑0K";
     downspeed = "↓0K";
+
 
     mousepressed=false;
     oldpos.setX(0);
@@ -48,6 +51,9 @@ monitot::monitot(QWidget *parent) :
     pro = new QProcess(this);
     killer = new monitorwindow(this);
     killer->hide();
+    cpumonitor = new manager();
+    connect(cpumonitor, SIGNAL(cpuchange(QString&)),killer,SLOT(cpuchange(QString&)));
+    cpumonitor->hide();
     timer = new QTimer(this);
     timer->setInterval(1000);
     timer->setSingleShot(false);
@@ -368,11 +374,14 @@ void monitot::mouseReleaseEvent(QMouseEvent * event){
 }
 
 void monitot::enterEvent(QEvent *event){
-    if(animation->state()==QAbstractAnimation::Running) return;
+    if(animation->state()==QAbstractAnimation::Running) {
+        qDebug()<<"animation running";
+        return;
+    }
     showall =true;//立即开始画网速部分；
-    int endx,endy,endw,endh;
-    endw = BG_H/2;
-    endh = BG_H;
+    int endx,endy,startw,starth;//
+    startw = BG_H/2;
+    starth = BG_H;
     switch(side)
     {
     case 0:
@@ -382,8 +391,8 @@ void monitot::enterEvent(QEvent *event){
     case 1:
         endx = this->x();
         endy = this->y();
-        endw = BG_H;
-        endh = BG_H/2;
+        startw = BG_H;
+        starth = BG_H/2;
         break;
     case 2:
         endx = this->x()-(BG_W-BG_H/2);
@@ -392,13 +401,14 @@ void monitot::enterEvent(QEvent *event){
     default:
         return;
     }
-   // qDebug()<<endx<<endy;
+    qDebug()<<endx<<endy<<startw<<starth;
     //QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
+    animation->stop();
     animation->setDuration(150);
-    animation->setStartValue(QRect(this->x(), this->y(), endw, endh));
+    animation->setStartValue(QRect(this->x(), this->y(), startw, starth));
 
     animation->setEndValue(QRect(endx, endy, BG_W, BG_H));
-   // qDebug()<<"enter"<<x()<<y();
+   qDebug()<<"enter"<<this->geometry();
 
     animation->start();
     event->accept();
@@ -427,12 +437,12 @@ void monitot::leaveEvent(QEvent *event){
     default:
         return;
     }
-
+    animation->stop();
     animation->setDuration(150);
-    animation->setStartValue(QRect(this->x(), this->y(), BG_W, BG_H));
+    animation->setStartValue(QRect(this->x(), this->y(), this->width(), this->height()));
     animation->setEndValue(QRect(endx,endy, endw, endh));
-    //qDebug()<<endx<<endy;
-   // qDebug()<<"leave"<<x()<<y();
+    qDebug()<<endx<<endy<<endw<<endh;
+    qDebug()<<"leave"<<this->geometry();
     animation->start();
     event->accept();
 }
@@ -452,6 +462,11 @@ void monitot::openmoniter()
 {
     QProcess process;
     process.startDetached("gnome-system-monitor");
+}
+
+void monitot::opencpu()
+{
+    cpumonitor->setVisible(!cpumonitor->isVisible());
 }
 
 void monitot::poscheck()
@@ -496,8 +511,6 @@ void monitot::readset()
     setGeometry(rx , ry , BG_W , BG_H );
     side = set.value("side", -1).toInt();
     showall = set.value("showall",true).toBool();
-
-
 }
 
 int monitot::memusing(){

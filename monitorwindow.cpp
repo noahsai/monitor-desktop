@@ -267,3 +267,7 @@ void monitorwindow::mouseReleaseEvent(QMouseEvent * event){
     setCursor(Qt::ArrowCursor);
     event->accept();
 }
+
+bool monitorwindow::cpuchange(QString& value){
+    ui->cpuvalue->setText(value);
+}

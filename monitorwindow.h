@@ -36,7 +36,7 @@ public:
 public slots:
 
     bool getinfo();
-
+    bool cpuchange(QString&);
 private slots:
     void on_pushButton_2_clicked();
 
