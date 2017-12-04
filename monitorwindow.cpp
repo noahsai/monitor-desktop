@@ -27,7 +27,7 @@ monitorwindow::monitorwindow(QWidget *parent) :
     ui->tableWidget->horizontalHeader()->setFixedHeight(20);
     ui->tableWidget->verticalHeader() ->setDefaultSectionSize(25);
     ui->tableWidget->setFrameShape(QFrame::NoFrame);
-    ui->tableWidget->setFixedSize(230,250);
+    //ui->tableWidget->setFixedSize(230,250);
 
     adjustSize();
     setFixedSize(QSize(230,320));//10+30+10+20+250
@@ -230,7 +230,7 @@ void monitorwindow::on_pushButton_clicked()
         {
             qDebug()<<cmd<<selected.length()<<" program killed.";
         }
-    qDebug()<<kill.readAll();
+    //qDebug()<<kill.readAll();
     selected.clear();
     ui->pushButton->setEnabled(true);
 }
@@ -246,7 +246,7 @@ void monitorwindow::on_tableWidget_itemClicked(QTableWidgetItem *item)
         selected.append(ui->tableWidget->item(item->row(),0)->whatsThis());
     }
     else if(item->checkState()==Qt::Unchecked) selected.removeOne(ui->tableWidget->item(item->row(),0)->whatsThis());
-    qDebug()<<selected;
+    //qDebug()<<selected;
 }
 
 void monitorwindow::mousePressEvent(QMouseEvent* event)
@@ -270,4 +270,9 @@ void monitorwindow::mouseReleaseEvent(QMouseEvent * event){
 
 bool monitorwindow::cpuchange(QString& value){
     ui->cpuvalue->setText(value);
+}
+
+void monitorwindow::on_cpuvalue_clicked()
+{
+    emit opencpu();
 }

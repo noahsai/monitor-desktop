@@ -25,9 +25,7 @@ class manager : public QScrollArea
 public:
     explicit manager(QScrollArea *parent = 0);
     ~manager();
-    void getcpu();
-     QList<float>  getresult(QStringList&,QStringList&);
-    float colculate(QString& one,QString& two);
+
 private slots:
     void timeout();
 
@@ -40,11 +38,15 @@ private:
     void mouseReleaseEvent(QMouseEvent * event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void closeEvent(QCloseEvent *event);
-    void initui();
+    void wheelEvent(QWheelEvent *);
+    QList<float>  getresult(QStringList&,QStringList&);
+    float colculate(QString& one,QString& two);void initui();
+    void getcpu();
     void refresh();
     void smallrefresh();
     void saveset();
     void readset();
+    void setalpha(int );
     QTimer *timer;
     QFile file;
     QStringList list;
@@ -56,6 +58,7 @@ private:
     int col;
     int time;
     int times_1s;
+    int alpha;
     QList<float>  result;
     QList<Widget*> cpulist;
     QPoint oldpos;

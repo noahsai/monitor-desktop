@@ -33,10 +33,13 @@ public:
     void stop_hide();
     ~monitorwindow();
 
-public slots:
+signals:
+    void opencpu();
 
+public slots:
     bool getinfo();
     bool cpuchange(QString&);
+
 private slots:
     void on_pushButton_2_clicked();
 
@@ -50,6 +53,8 @@ private slots:
     void on_pushButton_clicked();
 
     void on_tableWidget_itemClicked(QTableWidgetItem *item);
+
+    void on_cpuvalue_clicked();
 
 private:
     Ui::monitorwindow *ui;

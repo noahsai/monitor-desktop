@@ -10,6 +10,7 @@ manager::manager(QScrollArea *parent) :
             |Qt::Tool
          );//去边框//最ding层显示//不在任务栏显示
 
+    this->setAttribute(Qt::WA_TranslucentBackground, true);
     isone = true;
     row =0;
     col =0;
@@ -21,6 +22,7 @@ manager::manager(QScrollArea *parent) :
     connect(timer,SIGNAL(timeout()),this,SLOT(timeout()));
     timer->start();
     readset();
+    setalpha( alpha );
   //  getcpu();
 }
 
@@ -84,9 +86,9 @@ void manager::timeout()
     if(time>=times_1s) {
         time =0;//放在后面可以在停止后保存time值，绘图就不会变
         getcpu();
-        if(!result.isEmpty()&&this->isVisible()) refresh();
+        if(!result.isEmpty()) refresh();
     }
-    if(!result.isEmpty()&&this->isVisible()) smallrefresh();
+    if(!result.isEmpty()) smallrefresh();
     timer->start();
 }
 
@@ -156,6 +158,7 @@ void manager::initui(){
        while(matchs.hasNext())
        {
            cpu = new Widget();
+           cpu->setObjectName("cpumonitor");//给qss用的
            cpu->set1s_times(times_1s);
            cpu->setcpunum(i);
            cpulist.append(cpu);
@@ -292,6 +295,10 @@ void manager::saveset()
     QSettings set("Noahsai","Cpu-Monitor",this);
     set.setValue("geometry", this->geometry());
     set.setValue("visible", this->isVisible());
+    set.setValue("alpha", alpha);
+    //qDebug()<<alpha;
+
+
 }
 void manager::readset()
 {
@@ -300,6 +307,8 @@ void manager::readset()
     QRect r = set.value("geometry",QVariant(QRect(QApplication::desktop()->width()-this->width(),QApplication::desktop()->height()-this->height() , this->width() , this->height()))).toRect();
     this->setGeometry(r);
     this->setVisible(set.value("visible",true).toBool());
+    alpha = set.value("alpha" , 230).toInt();
+    //qDebug()<<alpha;
 }
 
 void manager::mouseDoubleClickEvent(QMouseEvent * event){
@@ -324,4 +333,31 @@ void manager::mouseDoubleClickEvent(QMouseEvent * event){
 void manager::closeEvent(QCloseEvent *event){
     hide();
     event->accept();
+}
+
+void manager::wheelEvent(QWheelEvent *event){
+    if(QApplication::keyboardModifiers() == Qt::ControlModifier)
+    {
+        QWheelEvent *e = static_cast<QWheelEvent*>(event);
+        int degrees = e->delta();//上为正，下为负
+        if(degrees > 0)
+        {
+            alpha +=10;
+            if(alpha > 255) alpha = 255;
+        }
+        else{
+            alpha -=10;
+            if(alpha < 0) alpha = 0;
+        }
+        setalpha(alpha);
+        event->accept();
+    }
+    else QWidget::wheelEvent(event);
+}
+
+void manager::setalpha(int a)
+{
+    //qDebug()<<a;
+    setStyleSheet("#manager,#scrollAreaWidgetContents,#cpumonitor{\
+                  background-color:rgba(255, 255, 255, " + QString().setNum(a) + ");}");
 }

@@ -50,10 +50,10 @@ monitot::monitot(QWidget *parent) :
     justpress = true;
     pro = new QProcess(this);
     killer = new monitorwindow(this);
+    connect(killer , SIGNAL(opencpu()),this,SLOT(opencpu()));
     killer->hide();
     cpumonitor = new manager();
     connect(cpumonitor, SIGNAL(cpuchange(QString&)),killer,SLOT(cpuchange(QString&)));
-    cpumonitor->hide();
     timer = new QTimer(this);
     timer->setInterval(1000);
     timer->setSingleShot(false);
@@ -66,6 +66,7 @@ monitot::monitot(QWidget *parent) :
 monitot::~monitot()
 {
     saveset();
+    delete cpumonitor;
     delete ui;
 }
 
@@ -375,7 +376,7 @@ void monitot::mouseReleaseEvent(QMouseEvent * event){
 
 void monitot::enterEvent(QEvent *event){
     if(animation->state()==QAbstractAnimation::Running) {
-        qDebug()<<"animation running";
+        //qDebug()<<"animation running";
         return;
     }
     showall =true;//立即开始画网速部分；
@@ -401,14 +402,14 @@ void monitot::enterEvent(QEvent *event){
     default:
         return;
     }
-    qDebug()<<endx<<endy<<startw<<starth;
+    //qDebug()<<endx<<endy<<startw<<starth;
     //QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
     animation->stop();
     animation->setDuration(150);
     animation->setStartValue(QRect(this->x(), this->y(), startw, starth));
 
     animation->setEndValue(QRect(endx, endy, BG_W, BG_H));
-   qDebug()<<"enter"<<this->geometry();
+   //qDebug()<<"enter"<<this->geometry();
 
     animation->start();
     event->accept();
@@ -441,8 +442,8 @@ void monitot::leaveEvent(QEvent *event){
     animation->setDuration(150);
     animation->setStartValue(QRect(this->x(), this->y(), this->width(), this->height()));
     animation->setEndValue(QRect(endx,endy, endw, endh));
-    qDebug()<<endx<<endy<<endw<<endh;
-    qDebug()<<"leave"<<this->geometry();
+    //qDebug()<<endx<<endy<<endw<<endh;
+    //qDebug()<<"leave"<<this->geometry();
     animation->start();
     event->accept();
 }

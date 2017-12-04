@@ -35,9 +35,7 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">#scrollAreaWidgetContents{
-background-color: rgb(255, 255, 255);
-}</string>
+    <string notr="true"/>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,3">
     <property name="spacing">

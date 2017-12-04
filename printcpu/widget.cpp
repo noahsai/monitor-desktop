@@ -7,6 +7,8 @@ Widget::Widget(QWidget *parent) :
     ui(new Ui::Widget)
 {
     ui->setupUi(this);
+    setAutoFillBackground(true);
+    //this->setAttribute(Qt::WA_TranslucentBackground, true);
     howlong_fresh = 100;//多少毫秒刷新一次；
     show_second = 30;//显示框中头-尾总共show_second+1秒，因为1-show_second+1之间有10个间隔，10比较好算数
     times_1s = 1000/howlong_fresh;//1秒内几次
