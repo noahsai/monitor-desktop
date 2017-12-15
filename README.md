@@ -18,14 +18,10 @@
 
 二是因为fudeepinck的垃圾api设计能力，毫无远见，想一点写一点，所以他们更新api后插件就废了。（呸，有那么多前人的经验给你参考还做不好，还好意思吐槽别人gnome的api多变？自大还是弱智啊。）
 
-![](http://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-37-58.png)
-
-![](http://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-38-28.png)
-
-![](http://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-38-39.png)
-
-![](http://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-39-54.png)
-
-![](http://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-48-20.png)
+![截图](https://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-37-58.png)
+![截图](https://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-38-28.png)
+![截图](https://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-38-39.png)
+![截图](https://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-39-54.png)
+![截图](https://github.com/noahsai/monitor-desktop/raw/master/截图/截图_2017-12-04_11-48-20.png)
 
 
